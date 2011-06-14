@@ -5,37 +5,31 @@ kill, clr, STO, RET, fib, curs = {}, "set", "get", "+", "-", "/", "^", "*",\
 def fact(num):
     if num == 1: return 1
     else: return num*fact(num-1)
-def Simp(op, num2, num1):
+def builtin_op(op, stack):
     global List
-    try: num1, num2 = float(num1), float(num2)
-    except:
-        try: num1 = float(num1)
-        except:
-            try: num2 = float(num2)
-            except: pass
-    if op == mul: return num1*num2
-    elif op == div: return num1/num2
-    elif op == sub: return num1-num2
-    elif op == add: return num1+num2
-    elif op == Pow: return num1**num2
-    elif op == assign: List[num1] = num2; return "ok"
-    elif op == call: return List[num1]
-    elif op == fac: return fact(num1)
-    elif op == duf: return "%s %s %s"%(duf, num1, num2)
-    elif op == mod: return num1%num2
-    elif op == kill: del List[num1]; return "ok"
+    if op == mul: stack.append(float(stack.pop())*float(stack.pop()))
+    elif op == div: stack.append(float(stack.pop())/float(stack.pop()))
+    elif op == sub: stack.append(float(stack.pop())-float(stack.pop()))
+    elif op == add: stack.append(float(stack.pop())+float(stack.pop()))
+    elif op == Pow: stack.append(float(stack.pop())**float(stack.pop()))
+    elif op == assign: val = List[stack.pop()] = stack.pop(); stack.append(val)
+    elif op == call: stack.append(List[stack.pop()])
+    elif op == fac: stack.append(fact(stack.pop()))
+    elif op == duf: stack.append("%s %s %s" % (duf, stack.pop(), stack.pop()))
+    elif op == mod: stack.append(float(stack.pop())%float(stack.pop()))
+    elif op == kill: del List[stack.pop()]
     elif op == clr: os.system("clear")
-    elif op == STO: List[num2] = num1; return "ok"
-    elif op == RET: return List[num1]
-    elif op == curs: return List
-    elif op == read: List[num1] = Eval(raw_input("%s "%num1)); return "ok"
+    elif op == STO: val = List[stack.pop()] = stack.pop(); stack.append(val)
+    elif op == RET: stack.append(List[stack.pop()])
+    elif op == curs: stack.append(List)
+    elif op == read: prompt = stack.pop(); List[prompt] = Eval(raw_input("%s "%prompt)); stack.append(List[prompt])
 def Eval(expr):
     ops = "%s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s"%(mul, add, sub, div, Pow, assign, call, fac, duf, mod, read, kill, clr, STO, RET, curs)
     stack, expr, ops = [], shlex.split(string.lower(expr)), ops.split()
     for i in expr:
         if i[0] != ';':
             if i not in ops: stack.append(i)
-            elif i in ops: stack.append(Simp(i, stack.pop(), stack.pop()))
+            elif i in ops: builtin_op(i, stack)
         else: stack.append("ok")
     return stack[0]
 def shell():
